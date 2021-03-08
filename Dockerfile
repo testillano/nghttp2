@@ -1,7 +1,7 @@
 FROM alpine:latest
 MAINTAINER testillano & jgomezselles
 
-LABEL testillano.nghttp2_build.description="Image for building C++ nghttp2 & boost sources"
+LABEL testillano.nghttp2_build.description="Docker image to build libraries & projects based in Tatsuhiro nghttp2-asio library"
 
 WORKDIR /code/build
 
