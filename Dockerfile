@@ -6,10 +6,6 @@ LABEL testillano.nghttp2_build.description="Docker image to build libraries & pr
 WORKDIR /code/build
 
 ARG make_procs=4
-ENV make_procs=${make_procs}
-ARG build_type=
-ENV build_type=${build_type}
-
 ARG nghttp2_ver=1.42.0
 ARG boost_ver=1.67.0
 

@@ -1,13 +1,14 @@
 #!/bin/sh
+# Prepend variables MAKE_PROCS ('make' parallel jobs, maximum available by default) and BUILD_TYPE ([Release]|Debug).
 if [ -x ./`basename $0` ]
 then
    exec ./`basename $0` $@
 else
-   build_type=${build_type:-Release}
-   make_procs=${make_procs:-$(grep processor /proc/cpuinfo -c)}
+   BUILD_TYPE=${BUILD_TYPE:-Release}
+   MAKE_PROCS=${MAKE_PROCS:-$(grep processor /proc/cpuinfo -c)}
 
-   [ -f CMakeLists.txt ] && cmake -DCMAKE_BUILD_TYPE=${build_type} $@ .
-   make -j${make_procs}
+   [ -f CMakeLists.txt ] && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} $@ .
+   make -j${MAKE_PROCS}
 fi
 exit $?
 
