@@ -19,7 +19,7 @@ echo "Input 'make_procs' [${make_procs__dflt}]:"
 read make_procs
 [ -z "${make_procs}" ] && make_procs=${make_procs__dflt}
 
-echo "Input Alpine 'base_ver' [${base_ver__dflt}]:"
+echo "Input alpine 'base_ver' [${base_ver__dflt}]:"
 read base_ver
 [ -z "${base_ver}" ] && base_ver=${base_ver__dflt}
 
