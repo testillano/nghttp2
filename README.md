@@ -4,12 +4,16 @@ This project hosts the stuff to build the `nghttp2_build` docker image useful to
 
 ## Builder image
 
-This image is already available at `docker hub` for every repository `tag`, and also for master as `latest`. Anyway, to create it, just type the following:
+This image is already available at `docker hub` for every repository `tag`, and also for master as `latest`.
+Anyway, you could type something like this to build the image:
 
 ```bash
-$ make_procs=$(grep processor /proc/cpuinfo -c)
-$ docker build --rm --build-arg make_procs=${make_procs} -t testillano/nghttp2_build .
+$ bargs="--build-arg make_procs=$(grep processor /proc/cpuinfo -c)"
+$ bargs+=" --build-arg base_ver=x.y.z"
+$ docker build --rm ${bargs} -t testillano/nghttp2_build .
 ```
+
+Or better use the automation script `./build.sh` located at project root.
 
 ## Usage
 
@@ -21,5 +25,5 @@ $ docker run --rm -it -u $(id -u):$(id -g) ${envs} -v ${PWD}:/code -w /code \
          testillano/nghttp2_build
 ```
 
-You can check the builder script at `./deps/build.sh`, which is the docker image `entrypoint`.
+You can check the builder script at `./deps/build.sh`, which is the docker image `entrypoint` script.
 

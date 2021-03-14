@@ -1,4 +1,5 @@
-FROM alpine:latest
+ARG base_ver=latest
+FROM alpine:${base_ver}
 MAINTAINER testillano & jgomezselles
 
 LABEL testillano.nghttp2_build.description="Docker image to build libraries & projects based in Tatsuhiro nghttp2-asio library"
@@ -26,8 +27,8 @@ RUN set -x && \
     set +x
 
 # Build script
-COPY deps/build.sh /usr/local/bin
-RUN chmod a+x /usr/local/bin/build.sh
+COPY deps/build.sh /var
+RUN chmod a+x /var/build.sh
 
-ENTRYPOINT ["build.sh"]
+ENTRYPOINT ["/var/build.sh"]
 CMD []
