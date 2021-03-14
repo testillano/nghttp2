@@ -9,8 +9,8 @@ Anyway, you could type something like this to build the image:
 
 ```bash
 $ bargs="--build-arg make_procs=$(grep processor /proc/cpuinfo -c)"
-$ bargs+=" --build-arg base_ver=x.y.z"
-$ docker build --rm ${bargs} -t testillano/nghttp2_build .
+$ bargs+=" --build-arg base_ver=<x.y.z>" # put the desired alpine version here
+$ docker build --rm ${bargs} -t testillano/nghttp2_build:<your tag> .
 ```
 
 Or better use the automation script `./build.sh` located at project root.
