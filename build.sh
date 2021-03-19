@@ -24,5 +24,5 @@ read base_ver
 [ -z "${base_ver}" ] && base_ver=${base_ver__dflt}
 
 bargs="--build-arg make_procs=${make_procs} --build-arg base_ver=${base_ver}"
-docker build --rm ${bargs} -t testillano/nghttp2_build .
+docker build --rm ${bargs} -t testillano/nghttp2 .
 
