@@ -2,7 +2,7 @@ ARG base_ver=latest
 FROM alpine:${base_ver}
 MAINTAINER testillano & jgomezselles
 
-LABEL testillano.nghttp2_build.description="Docker image to build libraries & projects based in Tatsuhiro nghttp2-asio library"
+LABEL testillano.nghttp2.description="Docker image to build libraries & projects based in Tatsuhiro nghttp2-asio library"
 
 WORKDIR /code/build
 

@@ -7,9 +7,9 @@
          __/ |             | |
         |___/              |_|
 
- nghttp2_build docker image to build over @tatsuhiro-t nghttp2-asio library (https://github.com/nghttp2/nghttp2)
+ nghttp2 docker image to build over @tatsuhiro-t nghttp2-asio library (https://github.com/nghttp2/nghttp2)
  Version 1.0.z
- https://github.com/testillano/nghttp2_build
+ https://github.com/testillano/nghttp2
 
 Licensed under the MIT License <http://opensource.org/licenses/MIT>.
 SPDX-License-Identifier: MIT
