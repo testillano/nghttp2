@@ -2,7 +2,7 @@ name: Docker Image Build and Publish
 
 environment:
   name: production_environment
-    url: https://github.com
+  url: https://github.com
 
 on:
   push:
