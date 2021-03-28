@@ -4,6 +4,9 @@ on:
   push:
     branches: test
 
+env:
+  IMAGE_NAME: nghttp2
+
 jobs:
   login:
     runs-on: ubuntu-latest
