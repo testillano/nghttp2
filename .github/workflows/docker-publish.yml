@@ -20,19 +20,22 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
+        
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
-      - name: Login to DockerHub
+      - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
           
-      - name: Build and push
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          push: true
-          tags: testillano/$IMAGE_NAME:latest
+      #- name: Build and push
+      #  id: docker_build
+      #  uses: docker/build-push-action@v2
+      #  with:
+      #    push: true
+      #    tags: testillano/$IMAGE_NAME:latest
 
 
 
