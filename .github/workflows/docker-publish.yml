@@ -11,7 +11,7 @@ jobs:
       -
         name: Test variables
         run: |
-          echo USERNAME is ${{ secrets.DOCKERHUB_USERNAME }} AND TOKEN IS xxxxxxx
+          echo USERNAME is ${{ secrets.DOCKERHUB_USERNAME }} AND TOKEN IS ${{ secrets.DOCKERHUB_TOKEN }}
           
       -
         name: Login to Docker Hub
