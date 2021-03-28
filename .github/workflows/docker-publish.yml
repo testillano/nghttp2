@@ -20,7 +20,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           logout: true
-
-
-
-
+      -
+        name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: testillano/$IMAGE_NAME:latest
