@@ -1,4 +1,9 @@
 name: Docker Image Build and Publish
+
+environment:
+  name: production_environment
+    url: https://github.com
+
 on:
   push:
     branches:
@@ -14,6 +19,7 @@ env:
   IMAGE_NAME: nghttp2
 
 jobs:
+  
   push_to_registry:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
