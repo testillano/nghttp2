@@ -3,11 +3,12 @@ on:
   push:
     branches:
       - master
+      - test
   #release:
   #  types: [published]
   # Publish `vx.y.z` tags as releases.
-  tags:
-    - v*
+  #tags:
+  #  - v*
 
 env:
   IMAGE_NAME: nghttp2
