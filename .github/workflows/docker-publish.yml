@@ -29,4 +29,4 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: testillano/$IMAGE_NAME:latest
+          tags: testillano/nghttp2:latest
