@@ -48,8 +48,12 @@ jobs:
         run: |
           IMAGE_ID=docker.io/testillano/nghttp2
 
+          # workflow dispatch event:
+          VERSION=${{ github.event.inputs.tag }}
+          echo Workflow dispatch VERSION=$VERSION
+          
           # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          [ -z "${VERSION}" ] && VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
 
           # Strip "v" prefix from tag name
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
@@ -57,8 +61,9 @@ jobs:
           # Use Docker `latest` tag convention
           [ "$VERSION" == "master" ] && VERSION=latest
 
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
+          echo Processed VERSION=$VERSION
+          
           docker tag testillano/nghttp2:local $IMAGE_ID:$VERSION
+          
           docker push $IMAGE_ID:$VERSION
 
