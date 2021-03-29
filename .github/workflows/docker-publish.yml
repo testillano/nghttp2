@@ -12,10 +12,8 @@ on:
       - master
       - test
   # Publish `vx.y.z` tags as releases:
-  #release:
-  #  types: [published]
-  tags:
-    - v*
+  release:
+    types: [published]
 
 jobs:
   build_and_push:
