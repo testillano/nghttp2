@@ -14,8 +14,8 @@ on:
   # Publish `vx.y.z` tags as releases:
   #release:
   #  types: [published]
-  #tags:
-  #  - v*
+  tags:
+    - v*
 
 jobs:
   build_and_push:
