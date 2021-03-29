@@ -1,38 +1,63 @@
-name: Docker Image Build and Publish
+name: Build docker image and publish to Docker Hub
 on:
+  # Build on demand:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Docker image tag'     
+        required: true  
+  # Build on push:
   push:
     branches:
       - master
-  #release:
-  #  types: [published]
-  # Publish `vx.y.z` tags as releases.
-  tags:
-    - v*
-
-env:
-  IMAGE_NAME: nghttp2
+  # Publish `vx.y.z` tags as releases:
+  release:
+    types: [published]
 
 jobs:
-  push_to_registry:
-    name: Push Docker image to Docker Hub
+  build_and_push:
+    name: Build and push docker image to Docker Hub
     runs-on: ubuntu-latest
+    #if: github.event_name == 'push'
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-
-      - name: Login to DockerHub
+#     -
+#        name: Check out the repo
+#        uses: actions/checkout@v2
+      -
+        name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-          
-      - name: Build and push
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          # logout at job end:
+          logout: true
+      -
+        name: Build (but not push)
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          push: true
-          tags: testillano/$IMAGE_NAME:latest
-
-
-
-
+          tags: testillano/nghttp2:local
+#          file: Dockerfile
+#          context: .
+          #push: true
+      -
+        name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+      -
+        name: Push image manually
+        run: |
+          IMAGE_ID=docker.io/testillano/nghttp2
+          
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          
+          # Strip "v" prefix from tag name
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          
+          # Use Docker `latest` tag convention
+          [ "$VERSION" == "master" ] && VERSION=latest
+          
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag testillano/nghttp2:local $IMAGE_ID:$VERSION
+          docker
