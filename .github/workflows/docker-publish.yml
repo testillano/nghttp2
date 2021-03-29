@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Docker image tag'     
-        required: true  
+        description: 'Docker image tag'
+        required: true
   # Build on push:
   push:
     branches:
@@ -47,17 +47,18 @@ jobs:
         name: Push image manually
         run: |
           IMAGE_ID=docker.io/testillano/nghttp2
-          
+
           # Strip git ref prefix from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          
+
           # Strip "v" prefix from tag name
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          
+
           # Use Docker `latest` tag convention
           [ "$VERSION" == "master" ] && VERSION=latest
-          
+
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag testillano/nghttp2:local $IMAGE_ID:$VERSION
-          docker
+          docker push $IMAGE_ID:$VERSION
+
