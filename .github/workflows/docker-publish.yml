@@ -6,14 +6,23 @@ on:
       tag:
         description: 'Docker image tag'
         required: true
-  # Build on push:
   push:
+    # Sequence of patterns matched against refs/heads
+    branches:    
+      # Push events on master branch
+      - master
+    # Sequence of patterns matched against refs/tags
+    tags:        
+      - v*.*.*             # Push events to vx.y.z
+
+  pull_request:
     branches:
       - master
-  # Publish `vx.y.z` tags as releases:
-  release:
-    types: [published]
 
+  # Publish `vx.y.z` tags as releases:
+  #release:
+  #  types: [published]
+      
 jobs:
   build_and_push:
     name: Build and push docker image to Docker Hub
