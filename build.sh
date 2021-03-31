@@ -3,7 +3,6 @@
 #############
 # VARIABLES #
 #############
-FORCE_DEFAULTS=
 image_tag__dflt=latest
 make_procs__dflt=$(grep processor /proc/cpuinfo -c)
 base_tag__dflt=latest # alpine
@@ -22,8 +21,6 @@ _read() {
   [ -n "${default}" ] && s_default="${default}"
   echo "Input '$1' value [${s_default}]:"
 
-  [ -n "${FORCE_DEFAULTS}" ] && varname=${default}
-
   if [ -n "${varname}" ]
   then
     echo "${varname}"
@@ -37,14 +34,11 @@ _read() {
 # EXECUTION #
 #############
 cd $(dirname $0)
-[ "$1" = "-f" ] && FORCE_DEFAULTS=yes
 echo
 echo "=== Build nghttp2 image ==="
 echo
 echo "For headless mode, prepend/export asked variables:"
 echo " $(grep "^_read " build.sh | awk '{ print $2 }' | tr '\n' ' ')"
-echo
-echo "Provide '-f' to force defaults."
 echo
 _read image_tag ${image_tag__dflt}
 _read make_procs ${make_procs__dflt}
