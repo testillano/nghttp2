@@ -8,11 +8,11 @@ on:
         required: true
   push:
     # Sequence of patterns matched against refs/heads
-    branches:    
+    branches:
       # Push events on master branch
       - master
     # Sequence of patterns matched against refs/tags
-    tags:        
+    tags:
       - v*.*.*             # Push events to vx.y.z
 
   pull_request:
@@ -22,7 +22,7 @@ on:
   # Publish `vx.y.z` tags as releases:
   #release:
   #  types: [published]
-      
+
 jobs:
   build_and_push:
     name: Build and push docker image to Docker Hub
@@ -58,21 +58,21 @@ jobs:
           IMAGE_ID=docker.io/testillano/nghttp2
 
           # workflow dispatch event:
-          VERSION=${{ github.event.inputs.tag }}
-          echo Workflow dispatch VERSION=$VERSION
-          
+          image_tag=${{ github.event.inputs.tag }}
+          echo Workflow dispatch image_tag=$image_tag
+
           # Strip git ref prefix from version
-          [ -z "${VERSION}" ] && VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          [ -z "${image_tag}" ] && image_tag=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
 
           # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && image_tag=$(echo $image_tag | sed -e 's/^v//')
 
           # Use Docker `latest` tag convention
-          [ "$VERSION" == "master" ] && VERSION=latest
+          [ "$image_tag" == "master" ] && image_tag=latest
 
-          echo Processed VERSION=$VERSION
-          
-          docker tag testillano/nghttp2:local $IMAGE_ID:$VERSION
-          
-          docker push $IMAGE_ID:$VERSION
+          echo Processed image_tag=$image_tag
+
+          docker tag testillano/nghttp2:local $IMAGE_ID:$image_tag
+
+          docker push $IMAGE_ID:$image_tag
 
