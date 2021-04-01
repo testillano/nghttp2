@@ -52,6 +52,6 @@ bargs+=" --build-arg nghttp2_ver=${nghttp2_ver}"
 bargs+=" --build-arg boost_ver=${boost_ver}"
 
 set -x
-docker build --rm ${bargs} -t testillano/nghttp2:${image_tag} .
+docker build --rm ${bargs} -t testillano/nghttp2:${image_tag} . || return 1
 set +x
 
