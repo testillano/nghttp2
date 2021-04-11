@@ -25,7 +25,7 @@ _read() {
   then
     echo "${varname}"
   else
-    read varname
+    read -r varname
     [ -z "${varname}" ] && varname=${default}
   fi
 }
@@ -33,18 +33,19 @@ _read() {
 #############
 # EXECUTION #
 #############
-cd $(dirname $0)
+# shellcheck disable=SC2164
+cd "$(dirname "$0")"
 echo
 echo "=== Build nghttp2 image ==="
 echo
 echo "For headless mode, prepend/export asked variables:"
 echo " $(grep "^_read " build.sh | awk '{ print $2 }' | tr '\n' ' ')"
 echo
-_read image_tag ${image_tag__dflt}
-_read make_procs ${make_procs__dflt}
-_read base_tag ${base_tag__dflt}
-_read nghttp2_ver ${nghttp2_ver__dflt}
-_read boost_ver ${boost_ver__dflt}
+_read image_tag "${image_tag__dflt}"
+_read make_procs "${make_procs__dflt}"
+_read base_tag "${base_tag__dflt}"
+_read nghttp2_ver "${nghttp2_ver__dflt}"
+_read boost_ver "${boost_ver__dflt}"
 
 bargs="--build-arg make_procs=${make_procs}"
 bargs+=" --build-arg base_tag=${base_tag}"
@@ -52,6 +53,7 @@ bargs+=" --build-arg nghttp2_ver=${nghttp2_ver}"
 bargs+=" --build-arg boost_ver=${boost_ver}"
 
 set -x
-docker build --rm ${bargs} -t testillano/nghttp2:${image_tag} . || return 1
+# shellcheck disable=SC2086
+docker build --rm ${bargs} -t testillano/nghttp2:"${image_tag}" . || exit 1
 set +x
 
