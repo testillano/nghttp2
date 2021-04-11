@@ -1,3 +1,5 @@
+[![Build docker image and publish to Docker Hub](https://github.com/testillano/nghttp2/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/testillano/nghttp2/actions/workflows/docker-publish.yml)
+
 # nghttp2 docker image
 
 This project hosts the stuff to build the `nghttp2` docker image useful to build projects & libraries based on @tatsuhiro-t nghttp2-asio library (https://github.com/nghttp2/nghttp2).
