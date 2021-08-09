@@ -12,11 +12,11 @@ boost_ver__dflt=1.67.0 # boost
 #############
 # FUNCTIONS #
 #############
-# $1: variable by reference; $2: default value
+# $1: variable by reference
 _read() {
   local -n varname=$1
-  local default=$2
 
+  local default=$(eval echo \$$1__dflt)
   local s_default="<null>"
   [ -n "${default}" ] && s_default="${default}"
   echo "Input '$1' value [${s_default}]:"
@@ -41,11 +41,11 @@ echo
 echo "For headless mode, prepend/export asked variables:"
 echo " $(grep "^_read " build.sh | awk '{ print $2 }' | tr '\n' ' ')"
 echo
-_read image_tag "${image_tag__dflt}"
-_read make_procs "${make_procs__dflt}"
-_read base_tag "${base_tag__dflt}"
-_read nghttp2_ver "${nghttp2_ver__dflt}"
-_read boost_ver "${boost_ver__dflt}"
+_read image_tag
+_read make_procs
+_read base_tag
+_read nghttp2_ver
+_read boost_ver
 
 bargs="--build-arg make_procs=${make_procs}"
 bargs+=" --build-arg base_tag=${base_tag}"
