@@ -8,13 +8,13 @@ WORKDIR /code/build
 
 ARG make_procs=4
 ARG nghttp2_ver=1.42.0
-ARG boost_ver=1.67.0
+ARG boost_ver=1.72.0
 
 RUN apk add build-base cmake wget tar linux-headers openssl-dev libev-dev openssl-libs-static
 
 # boost
 RUN set -x && \
-    wget https://dl.bintray.com/boostorg/release/${boost_ver}/source/boost_$(echo ${boost_ver} | tr '.' '_')_rc2.tar.gz && tar xvf boost* && cd boost*/ && \
+    wget https://sourceforge.net/projects/boost/files/boost/${boost_ver}/boost_$(echo ${boost_ver} | tr '.' '_').tar.gz && tar xvf boost* && cd boost*/ && \
     ./bootstrap.sh && ./b2 -j${make_procs} install && \
     cd .. && rm -rf * && \
     set +x
