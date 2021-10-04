@@ -6,8 +6,8 @@
 image_tag__dflt=latest
 make_procs__dflt=$(grep processor /proc/cpuinfo -c)
 base_tag__dflt=latest # alpine
-nghttp2_ver__dflt=1.42.0 # tatsuhiro
-boost_ver__dflt=1.67.0 # boost
+nghttp2_ver__dflt=1.45.1 # tatsuhiro
+boost_ver__dflt=1.76.0 # boost
 
 #############
 # FUNCTIONS #

@@ -7,14 +7,17 @@ LABEL testillano.nghttp2.description="Docker image to build libraries & projects
 WORKDIR /code/build
 
 ARG make_procs=4
-ARG nghttp2_ver=1.42.0
-ARG boost_ver=1.72.0
+ARG nghttp2_ver=1.45.1
+ARG boost_ver=1.76.0
 
 RUN apk add build-base cmake wget tar linux-headers openssl-dev libev-dev openssl-libs-static
 
+COPY deps/patches/ /patches
+
 # boost
+# wget https://sourceforge.net/projects/boost/files/boost/${boost_ver}/boost_$(echo ${boost_ver} | tr '.' '_').tar.gz && tar xvf boost* && cd boost*/ && \
 RUN set -x && \
-    wget https://sourceforge.net/projects/boost/files/boost/${boost_ver}/boost_$(echo ${boost_ver} | tr '.' '_').tar.gz && tar xvf boost* && cd boost*/ && \
+    wget https://boostorg.jfrog.io/artifactory/main/release/${boost_ver}/source/boost_$(echo ${boost_ver} | tr '.' '_').tar.gz && tar xvf boost* && cd boost*/ && \
     ./bootstrap.sh && ./b2 -j${make_procs} install && \
     cd .. && rm -rf * && \
     set +x
@@ -22,7 +25,8 @@ RUN set -x && \
 # nghttp2
 RUN set -x && \
     wget https://github.com/nghttp2/nghttp2/releases/download/v${nghttp2_ver}/nghttp2-${nghttp2_ver}.tar.bz2 && tar xf nghttp2* && cd nghttp2*/ && \
-    ./configure --enable-asio-lib --disable-shared && make -j${make_procs} install && \
+    for patch in /patches/nghttp2/${nghttp2_ver}/*.patch; do patch -p1 < ${patch}; done && \
+    ./configure --enable-asio-lib --disable-shared --enable-python-bindings=no && make -j${make_procs} install && \
     cd .. && rm -rf * && \
     set +x
 
