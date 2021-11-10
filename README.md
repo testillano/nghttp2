@@ -10,10 +10,10 @@ This project hosts the stuff to build the `nghttp2` docker image useful to build
 
 ## Project image
 
-This image is already available at `docker hub` for every repository `tag`, and also for master as `latest`:
+This image is already available at `github container registry` and `docker hub` for every repository `tag`, and also for master as `latest`:
 
 ```bash
-$ docker pull testillano/nghttp2:<tag>
+$ docker pull ghcr.io/testillano/nghttp2:<tag>
 ```
 
 You could also build it using the script `./build.sh` located at project root.
@@ -25,6 +25,6 @@ To run compilation over this image, just run with `docker`. The `entrypoint` (ch
 ```bash
 $ envs="-e MAKE_PROCS=$(grep processor /proc/cpuinfo -c) -e BUILD_TYPE=Release"
 $ docker run --rm -it -u $(id -u):$(id -g) ${envs} -v ${PWD}:/code -w /code \
-         testillano/nghttp2:<tag>
+         ghcr.io/testillano/nghttp2:<tag>
 ```
 

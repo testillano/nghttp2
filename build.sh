@@ -8,6 +8,7 @@ make_procs__dflt=$(grep processor /proc/cpuinfo -c)
 base_tag__dflt=latest # alpine
 nghttp2_ver__dflt=1.45.1 # tatsuhiro
 boost_ver__dflt=1.76.0 # boost
+registry=ghcr.io/testillano
 
 #############
 # FUNCTIONS #
@@ -54,6 +55,6 @@ bargs+=" --build-arg boost_ver=${boost_ver}"
 
 set -x
 # shellcheck disable=SC2086
-docker build --rm ${bargs} -t testillano/nghttp2:"${image_tag}" . || exit 1
+docker build --rm ${bargs} -t ${registry}/nghttp2:"${image_tag}" . || exit 1
 set +x
 

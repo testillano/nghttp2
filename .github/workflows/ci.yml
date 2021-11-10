@@ -1,4 +1,4 @@
-name: Build docker image and publish to Docker Hub
+name: Main project workflow
 on:
   # Build on demand:
   workflow_dispatch:
@@ -40,6 +40,15 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           # logout at job end:
           logout: true
+    -
+        name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          # logout at job end:
+          logout: true
       -
         name: Build (but not push)
         id: docker_build
@@ -55,8 +64,6 @@ jobs:
       -
         name: Push image manually
         run: |
-          IMAGE_ID=docker.io/testillano/nghttp2
-
           # workflow dispatch event:
           image_tag=${{ github.event.inputs.tag }}
           echo Workflow dispatch image_tag=$image_tag
@@ -72,7 +79,12 @@ jobs:
 
           echo Processed image_tag=$image_tag
 
-          docker tag testillano/nghttp2:local $IMAGE_ID:$image_tag
-
-          docker push $IMAGE_ID:$image_tag
-
+          for hub in docker.io ghcr.io
+          do
+            for imgbn in nghttp2
+            do
+              echo "Push '${imgbn}' image to '${hub}' hub"
+              docker tag testillano/${imgbn}:local ${hub}/testillano/${imgbn}:${image_tag}
+              docker push ${hub}/testillano/${imgbn}:${image_tag}
+            done
+          done
