@@ -2,7 +2,10 @@
 #
 # ENTRYPOINT BUILDER SCRIPT
 #
-# Prepend variables MAKE_PROCS ('make' parallel jobs, maximum available by default) and BUILD_TYPE ([Release]|Debug).
+# Prepend variables:
+#  MAKE_PROCS (number of concurrent make 'jobs', maximum available by default): 'make' parallel jobs.
+#  BUILD_TYPE ([Release]|Debug): set the build type.
+#  STATIC_LINKING ([TRUE]|FALSE): add '-static' to executables linking.
 #
 # Command-line arguments:
 # * Having cmake system:
@@ -12,8 +15,9 @@
 
 BUILD_TYPE=${BUILD_TYPE:-Release}
 MAKE_PROCS=${MAKE_PROCS:-$(grep processor /proc/cpuinfo -c)}
+STATIC_LINKING=${STATIC_LINKING:-TRUE}
 
-[ -f CMakeLists.txt ] && cmake -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" "$1" . && shift
+[ -f CMakeLists.txt ] && cmake -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DSTATIC_LINKING="${STATIC_LINKING}" "$1" . && shift
 make -j"${MAKE_PROCS}" "$@"
 
 exit $?
