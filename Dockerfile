@@ -7,7 +7,7 @@ LABEL testillano.nghttp2.description="Docker image to build libraries & projects
 WORKDIR /code/build
 
 ARG make_procs=4
-ARG nghttp2_ver=1.45.1
+ARG nghttp2_ver=1.47.0
 ARG boost_ver=1.76.0
 
 RUN apk add build-base cmake wget tar linux-headers openssl-dev libev-dev openssl-libs-static
