@@ -7,7 +7,7 @@ image_tag__dflt=latest
 make_procs__dflt=$(grep processor /proc/cpuinfo -c)
 base_tag__dflt=latest # alpine
 nghttp2_ver__dflt=1.48.0 # tatsuhiro
-boost_ver__dflt=1.79.0 # boost
+boost_ver__dflt=1.76.0 # boost
 registry=ghcr.io/testillano
 
 #############

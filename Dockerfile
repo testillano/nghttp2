@@ -8,7 +8,7 @@ WORKDIR /code/build
 
 ARG make_procs=4
 ARG nghttp2_ver=1.48.0
-ARG boost_ver=1.79.0
+ARG boost_ver=1.76.0
 
 RUN apk add build-base cmake wget tar linux-headers openssl-dev libev-dev openssl-libs-static
 
@@ -25,7 +25,7 @@ RUN set -x && \
 # nghttp2
 RUN set -x && \
     wget https://github.com/nghttp2/nghttp2/releases/download/v${nghttp2_ver}/nghttp2-${nghttp2_ver}.tar.bz2 && tar xf nghttp2* && cd nghttp2*/ && \
-    for patch in /patches/nghttp2/${nghttp2_ver}/*.patch; do patch -p1 < ${patch}; done && \
+    for patch in $(ls /patches/nghttp2/${nghttp2_ver}/*.patch 2>/dev/null); do patch -p1 < ${patch}; done && \
     ./configure --enable-asio-lib --disable-shared --enable-python-bindings=no && make -j${make_procs} install && \
     cd .. && rm -rf * && \
     set +x
