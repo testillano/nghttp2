@@ -5,7 +5,8 @@
 #############
 image_tag__dflt=latest
 make_procs__dflt=$(grep processor /proc/cpuinfo -c)
-base_tag__dflt=latest # alpine
+base_os__dflt=ubuntu
+base_tag__dflt=latest
 nghttp2_ver__dflt=1.48.0 # tatsuhiro
 boost_ver__dflt=1.76.0 # boost
 registry=ghcr.io/testillano
@@ -44,11 +45,13 @@ echo " $(grep "^_read " build.sh | awk '{ print $2 }' | tr '\n' ' ')"
 echo
 _read image_tag
 _read make_procs
+_read base_os
 _read base_tag
 _read nghttp2_ver
 _read boost_ver
 
 bargs="--build-arg make_procs=${make_procs}"
+bargs+=" --build-arg base_os=${base_os}"
 bargs+=" --build-arg base_tag=${base_tag}"
 bargs+=" --build-arg nghttp2_ver=${nghttp2_ver}"
 bargs+=" --build-arg boost_ver=${boost_ver}"
