@@ -17,6 +17,7 @@ $ docker pull ghcr.io/testillano/nghttp2:<tag>
 ```
 
 You could also build it using the script `./build.sh` located at project root.
+Both `ubuntu` and `alpine` base images are supported, but the official image uploaded is the one based in `ubuntu`.
 
 ## Usage
 
