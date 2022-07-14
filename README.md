@@ -13,7 +13,7 @@ This project hosts the stuff to build the `nghttp2` docker image useful to build
 This image is already available at `github container registry` and `docker hub` for every repository `tag`, and also for master as `latest`:
 
 ```bash
-$ docker pull ghcr.io/testillano/nghttp2:<tag>
+$> docker pull ghcr.io/testillano/nghttp2:<tag>
 ```
 
 You could also build it using the script `./build.sh` located at project root.
@@ -24,8 +24,8 @@ Both `ubuntu` and `alpine` base images are supported, but the official image upl
 To run compilation over this image, just run with `docker`. The `entrypoint` (check it at `./deps/build.sh`) will fall back from `cmake` (looking for `CMakeLists.txt` file at project root, i.e. mounted on working directory `/code` to generate makefiles) to `make`, in order to build your source code. There are three available environment variables used by the builder script of this image: `BUILD_TYPE` and `STATIC_LINKING` (for `cmake`) and `MAKE_PROCS` (for `make`):
 
 ```bash
-$ envs="-e MAKE_PROCS=$(grep processor /proc/cpuinfo -c) -e BUILD_TYPE=Release -e STATIC_LINKING=TRUE"
-$ docker run --rm -it -u $(id -u):$(id -g) ${envs} -v ${PWD}:/code -w /code \
-         ghcr.io/testillano/nghttp2:<tag>
+$> envs="-e MAKE_PROCS=$(grep processor /proc/cpuinfo -c) -e BUILD_TYPE=Release -e STATIC_LINKING=TRUE"
+$> docker run --rm -it -u $(id -u):$(id -g) ${envs} -v ${PWD}:/code -w /code \
+          ghcr.io/testillano/nghttp2:<tag>
 ```
 
