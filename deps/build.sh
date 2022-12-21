@@ -17,7 +17,7 @@ BUILD_TYPE=${BUILD_TYPE:-Release}
 MAKE_PROCS=${MAKE_PROCS:-$(grep processor /proc/cpuinfo -c)}
 STATIC_LINKING=${STATIC_LINKING:-TRUE}
 
-[ -f CMakeLists.txt ] && cmake -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DSTATIC_LINKING="${STATIC_LINKING}" "$1" . && [ -n "$2" ] && shift
+[ -f CMakeLists.txt ] && cmake -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DSTATIC_LINKING="${STATIC_LINKING}" "$1" . && [ -n "$1" ] && shift
 make -j"${MAKE_PROCS}" $@
 
 exit $?
