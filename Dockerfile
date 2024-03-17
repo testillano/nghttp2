@@ -11,8 +11,8 @@ LABEL testillano.nghttp2.base-os="${base_os}"
 WORKDIR /code/build
 
 ARG make_procs=4
-ARG nghttp2_ver=1.48.0
-ARG boost_ver=1.76.0
+ARG nghttp2_ver=1.51.0
+ARG boost_ver=1.84.0
 
 RUN if [ "${base_os}" = "alpine" ] ; then apk update && apk add build-base cmake wget tar linux-headers openssl-dev libev-dev openssl-libs-static && rm -rf /var/cache/apk/* ; elif [ "${base_os}" = "ubuntu" ] ; then apt-get update && apt-get install -y wget make cmake g++ bzip2 patch libssl-dev && apt-get clean ; fi
 

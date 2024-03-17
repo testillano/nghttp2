@@ -7,8 +7,8 @@ image_tag__dflt=latest
 make_procs__dflt=$(grep processor /proc/cpuinfo -c)
 base_os__dflt=ubuntu
 base_tag__dflt=latest
-nghttp2_ver__dflt=1.48.0 # tatsuhiro
-boost_ver__dflt=1.76.0 # boost
+nghttp2_ver__dflt=1.51.0 # tatsuhiro
+boost_ver__dflt=1.84.0 # boost
 registry=ghcr.io/testillano
 
 #############
