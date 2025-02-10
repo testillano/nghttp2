@@ -5,6 +5,7 @@
 [![Ask Me Anything !](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://github.com/testillano)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/testillano/nghttp2/graphs/commit-activity)
 [![Main project workflow](https://github.com/testillano/nghttp2/actions/workflows/ci.yml/badge.svg)](https://github.com/testillano/nghttp2/actions/workflows/ci.yml)
+[![Docker Pulls](https://img.shields.io/docker/pulls/testillano/nghttp2.svg)](https://github.com/testillano/nghttp2/pkgs/container/nghttp2)
 
 This project hosts the stuff to build the `nghttp2` docker image useful to build projects & libraries based on @tatsuhiro-t nghttp2-asio library (https://github.com/nghttp2/nghttp2).
 
