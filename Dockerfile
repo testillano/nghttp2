@@ -19,11 +19,19 @@ RUN if [ "${base_os}" = "alpine" ] ; then apk update && apk add build-base cmake
 
 COPY deps/patches/ /patches
 
-# boost
-# wget https://sourceforge.net/projects/boost/files/boost/${boost_ver}/boost_$(echo ${boost_ver} | tr '.' '_').tar.gz && tar xvf boost* && cd boost*/ && \
+# Optimization flags for LTO and native architecture
+ARG OPT_CFLAGS="-O3 -march=native -flto=auto"
+ARG OPT_CXXFLAGS="-O3 -march=native -flto=auto"
+ARG OPT_LDFLAGS="-flto=auto"
+
+# boost (try official JFrog first, fallback to SourceForge)
 RUN set -x && \
-    wget https://boostorg.jfrog.io/artifactory/main/release/${boost_ver}/source/boost_$(echo ${boost_ver} | tr '.' '_').tar.gz && tar xvf boost* && cd boost*/ && \
-    ./bootstrap.sh && ./b2 -j${make_procs} install && \
+    boost_tar=boost_$(echo ${boost_ver} | tr '.' '_').tar.gz && \
+    wget -O ${boost_tar} https://boostorg.jfrog.io/artifactory/main/release/${boost_ver}/source/${boost_tar} && \
+    file ${boost_tar} | grep -q gzip || \
+    (rm -f ${boost_tar} && wget -O ${boost_tar} https://sourceforge.net/projects/boost/files/boost/${boost_ver}/${boost_tar}) && \
+    tar xvf ${boost_tar} && cd boost*/ && \
+    ./bootstrap.sh && ./b2 -j${make_procs} variant=release cxxflags="${OPT_CXXFLAGS}" linkflags="${OPT_LDFLAGS}" install && \
     cd .. && rm -rf * && \
     set +x
 
@@ -31,6 +39,7 @@ RUN set -x && \
 RUN set -x && \
     wget https://github.com/nghttp2/nghttp2/releases/download/v${nghttp2_ver}/nghttp2-${nghttp2_ver}.tar.bz2 && tar xf nghttp2* && cd nghttp2*/ && \
     for patch in $(ls /patches/nghttp2/${nghttp2_ver}/*.patch 2>/dev/null); do patch -p1 < ${patch}; done && \
+    CFLAGS="${OPT_CFLAGS}" CXXFLAGS="${OPT_CXXFLAGS}" LDFLAGS="${OPT_LDFLAGS}" \
     ./configure --disable-shared --enable-python-bindings=no && make -j${make_procs} install && \
     cd .. && rm -rf * && \
     set +x
@@ -41,7 +50,9 @@ RUN if [ "${base_os}" = "alpine" ] ; then apk update && apk add libtool pkgconf 
 RUN set -x && \
     wget https://github.com/nghttp2/nghttp2-asio/archive/refs/heads/${nghttp2_asio_ver}.zip && unzip ${nghttp2_asio_ver}.zip && cd nghttp2-asio-${nghttp2_asio_ver} && \
     for patch in $(ls /patches/nghttp2-asio/${nghttp2_asio_ver}/*.patch 2>/dev/null); do patch -p1 < ${patch}; done && \
-    autoreconf -i && automake && autoconf && ./configure --enable-shared=false && make -j${make_procs} install && \
+    autoreconf -i && automake && autoconf && \
+    CFLAGS="${OPT_CFLAGS}" CXXFLAGS="${OPT_CXXFLAGS}" LDFLAGS="${OPT_LDFLAGS}" \
+    ./configure --enable-shared=false && make -j${make_procs} install && \
     cd .. && rm -rf * && \
     set +x
 
