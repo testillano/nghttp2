@@ -81,7 +81,8 @@ jobs:
 
           echo Processed image_tag=$image_tag
 
-          for hub in docker.io ghcr.io
+          #for hub in docker.io ghcr.io
+          for hub in ghcr.io
           do
             for imgbn in nghttp2
             do
