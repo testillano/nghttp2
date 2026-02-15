@@ -19,9 +19,9 @@ RUN if [ "${base_os}" = "alpine" ] ; then apk update && apk add build-base cmake
 
 COPY deps/patches/ /patches
 
-# Optimization flags for LTO and native architecture
-ARG OPT_CFLAGS="-O3 -march=native -flto=auto"
-ARG OPT_CXXFLAGS="-O3 -march=native -flto=auto"
+# Optimization flags for LTO and portable SIMD (x86-64-v3: AVX2, ~2013+)
+ARG OPT_CFLAGS="-O3 -march=x86-64-v3 -flto=auto"
+ARG OPT_CXXFLAGS="-O3 -march=x86-64-v3 -flto=auto"
 ARG OPT_LDFLAGS="-flto=auto"
 
 # boost (try official JFrog first, fallback to SourceForge)
