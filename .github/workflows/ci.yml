@@ -64,6 +64,7 @@ jobs:
 #          context: .
 #          platforms: linux/amd64,linux/arm/v7
           #push: true
+          load: true
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
