@@ -1,0 +1,14 @@
+diff -Naur 1/lib/asio_client_session_impl.cc 2/lib/asio_client_session_impl.cc
+--- 1/lib/asio_client_session_impl.cc
++++ 2/lib/asio_client_session_impl.cc
+@@ -559,8 +559,8 @@
+     prdptr = &prd;
+   }
+ 
+-  auto stream_id = nghttp2_submit_request(session_, prio.get(), nva.data(),
+-                                          nva.size(), prdptr, strm.get());
++  auto stream_id = session_ ? nghttp2_submit_request(session_, prio.get(), nva.data(),
++                                          nva.size(), prdptr, strm.get()) : NGHTTP2_ERR_INVALID_STATE;
+   if (stream_id < 0) {
+     ec = make_error_code(static_cast<nghttp2_error>(stream_id));
+     return nullptr;
