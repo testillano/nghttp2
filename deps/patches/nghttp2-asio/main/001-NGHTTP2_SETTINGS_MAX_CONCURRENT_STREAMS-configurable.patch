@@ -1,0 +1,203 @@
+diff -Naur -x .git a/lib/asio_server.cc b/lib/asio_server.cc
+--- a/lib/asio_server.cc	2022-08-11 19:18:50.000000000 +0200
++++ b/lib/asio_server.cc	2026-07-11 16:01:58.114709040 +0200
+@@ -46,10 +46,12 @@
+ 
+ server::server(std::size_t io_service_pool_size,
+                const boost::posix_time::time_duration &tls_handshake_timeout,
+-               const boost::posix_time::time_duration &read_timeout)
++               const boost::posix_time::time_duration &read_timeout,
++               uint32_t max_concurrent_streams)
+     : io_service_pool_(io_service_pool_size),
+       tls_handshake_timeout_(tls_handshake_timeout),
+-      read_timeout_(read_timeout) {}
++      read_timeout_(read_timeout),
++      max_concurrent_streams_(max_concurrent_streams) {}
+ 
+ boost::system::error_code
+ server::listen_and_serve(boost::system::error_code &ec,
+@@ -131,7 +133,7 @@
+ 
+   auto new_connection = std::make_shared<connection<ssl_socket>>(
+       mux, tls_handshake_timeout_, read_timeout_,
+-      io_service_pool_.get_io_service(), tls_context);
++      max_concurrent_streams_, io_service_pool_.get_io_service(), tls_context);
+ 
+   acceptor.async_accept(
+       new_connection->socket().lowest_layer(),
+@@ -170,7 +172,7 @@
+ 
+   auto new_connection = std::make_shared<connection<tcp::socket>>(
+       mux, tls_handshake_timeout_, read_timeout_,
+-      io_service_pool_.get_io_service());
++      max_concurrent_streams_, io_service_pool_.get_io_service());
+ 
+   acceptor.async_accept(
+       new_connection->socket(), [this, &acceptor, &mux, new_connection](
+diff -Naur -x .git a/lib/asio_server.h b/lib/asio_server.h
+--- a/lib/asio_server.h	2022-08-11 19:18:50.000000000 +0200
++++ b/lib/asio_server.h	2026-07-11 16:01:38.922908144 +0200
+@@ -65,7 +65,8 @@
+ public:
+   explicit server(std::size_t io_service_pool_size,
+                   const boost::posix_time::time_duration &tls_handshake_timeout,
+-                  const boost::posix_time::time_duration &read_timeout);
++                  const boost::posix_time::time_duration &read_timeout,
++                  uint32_t max_concurrent_streams = 256);
+ 
+   boost::system::error_code
+   listen_and_serve(boost::system::error_code &ec,
+@@ -106,6 +107,7 @@
+ 
+   boost::posix_time::time_duration tls_handshake_timeout_;
+   boost::posix_time::time_duration read_timeout_;
++  uint32_t max_concurrent_streams_;
+ };
+ 
+ } // namespace server
+diff -Naur -x .git a/lib/asio_server_connection.h b/lib/asio_server_connection.h
+--- a/lib/asio_server_connection.h	2022-08-11 19:18:50.000000000 +0200
++++ b/lib/asio_server_connection.h	2026-07-11 16:00:48.771428438 +0200
+@@ -75,12 +75,14 @@
+       serve_mux &mux,
+       const boost::posix_time::time_duration &tls_handshake_timeout,
+       const boost::posix_time::time_duration &read_timeout,
++      uint32_t max_concurrent_streams,
+       SocketArgs &&...args)
+       : socket_(std::forward<SocketArgs>(args)...),
+         mux_(mux),
+         deadline_(GET_IO_SERVICE(socket_)),
+         tls_handshake_timeout_(tls_handshake_timeout),
+         read_timeout_(read_timeout),
++        max_concurrent_streams_(max_concurrent_streams),
+         writing_(false),
+         stopped_(false) {}
+ 
+@@ -91,7 +93,7 @@
+     handler_ = std::make_shared<http2_handler>(
+         GET_IO_SERVICE(socket_), socket_.lowest_layer().remote_endpoint(ec),
+         [this]() { do_write(); }, mux_);
+-    if (handler_->start() != 0) {
++    if (handler_->start(max_concurrent_streams_) != 0) {
+       stop();
+       return;
+     }
+@@ -239,6 +241,7 @@
+   boost::asio::deadline_timer deadline_;
+   boost::posix_time::time_duration tls_handshake_timeout_;
+   boost::posix_time::time_duration read_timeout_;
++  uint32_t max_concurrent_streams_;
+ 
+   bool writing_;
+   bool stopped_;
+diff -Naur -x .git a/lib/asio_server_http2.cc b/lib/asio_server_http2.cc
+--- a/lib/asio_server_http2.cc	2022-08-11 19:18:50.000000000 +0200
++++ b/lib/asio_server_http2.cc	2026-07-11 16:01:30.410996450 +0200
+@@ -77,6 +77,10 @@
+   impl_->read_timeout(t);
+ }
+ 
++void http2::max_concurrent_streams(uint32_t val) {
++  impl_->max_concurrent_streams(val);
++}
++
+ bool http2::handle(std::string pattern, request_cb cb) {
+   return impl_->handle(std::move(pattern), std::move(cb));
+ }
+diff -Naur -x .git a/lib/asio_server_http2_handler.cc b/lib/asio_server_http2_handler.cc
+--- a/lib/asio_server_http2_handler.cc	2022-08-11 19:18:50.000000000 +0200
++++ b/lib/asio_server_http2_handler.cc	2026-07-11 16:02:09.122594893 +0200
+@@ -267,7 +267,7 @@
+   return formatted_date_;
+ }
+ 
+-int http2_handler::start() {
++int http2_handler::start(uint32_t max_concurrent_streams) {
+   int rv;
+ 
+   nghttp2_session_callbacks *callbacks;
+@@ -298,7 +298,7 @@
+     return -1;
+   }
+ 
+-  nghttp2_settings_entry ent{NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS, 100};
++  nghttp2_settings_entry ent{NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS, max_concurrent_streams};
+   nghttp2_submit_settings(session_, NGHTTP2_FLAG_NONE, &ent, 1);
+ 
+   return 0;
+diff -Naur -x .git a/lib/asio_server_http2_handler.h b/lib/asio_server_http2_handler.h
+--- a/lib/asio_server_http2_handler.h	2022-08-11 19:18:50.000000000 +0200
++++ b/lib/asio_server_http2_handler.h	2026-07-11 16:02:01.802670780 +0200
+@@ -59,7 +59,7 @@
+ 
+   ~http2_handler();
+ 
+-  int start();
++  int start(uint32_t max_concurrent_streams = 256);
+ 
+   stream *create_stream(int32_t stream_id);
+   void close_stream(int32_t stream_id);
+diff -Naur -x .git a/lib/asio_server_http2_impl.cc b/lib/asio_server_http2_impl.cc
+--- a/lib/asio_server_http2_impl.cc	2022-08-11 19:18:50.000000000 +0200
++++ b/lib/asio_server_http2_impl.cc	2026-07-11 16:01:13.995166756 +0200
+@@ -40,14 +40,15 @@
+ http2_impl::http2_impl()
+     : num_threads_(1),
+       backlog_(-1),
++      max_concurrent_streams_(256),
+       tls_handshake_timeout_(boost::posix_time::seconds(60)),
+       read_timeout_(boost::posix_time::seconds(60)) {}
+ 
+ boost::system::error_code http2_impl::listen_and_serve(
+     boost::system::error_code &ec, boost::asio::ssl::context *tls_context,
+     const std::string &address, const std::string &port, bool asynchronous) {
+-  server_.reset(
+-      new server(num_threads_, tls_handshake_timeout_, read_timeout_));
++  server_.reset(new server(num_threads_, tls_handshake_timeout_,
++                            read_timeout_, max_concurrent_streams_));
+   return server_->listen_and_serve(ec, tls_context, address, port, backlog_,
+                                    mux_, asynchronous);
+ }
+@@ -65,6 +66,10 @@
+   read_timeout_ = t;
+ }
+ 
++void http2_impl::max_concurrent_streams(uint32_t val) {
++  max_concurrent_streams_ = val;
++}
++
+ bool http2_impl::handle(std::string pattern, request_cb cb) {
+   return mux_.handle(std::move(pattern), std::move(cb));
+ }
+diff -Naur -x .git a/lib/asio_server_http2_impl.h b/lib/asio_server_http2_impl.h
+--- a/lib/asio_server_http2_impl.h	2022-08-11 19:18:50.000000000 +0200
++++ b/lib/asio_server_http2_impl.h	2026-07-11 16:01:01.743293862 +0200
+@@ -49,6 +49,7 @@
+   void backlog(int backlog);
+   void tls_handshake_timeout(const boost::posix_time::time_duration &t);
+   void read_timeout(const boost::posix_time::time_duration &t);
++  void max_concurrent_streams(uint32_t val);
+   bool handle(std::string pattern, request_cb cb);
+   void stop();
+   void join();
+@@ -63,6 +64,7 @@
+   serve_mux mux_;
+   boost::posix_time::time_duration tls_handshake_timeout_;
+   boost::posix_time::time_duration read_timeout_;
++  uint32_t max_concurrent_streams_;
+ };
+ 
+ } // namespace server
+diff -Naur -x .git a/lib/includes/nghttp2/asio_http2_server.h b/lib/includes/nghttp2/asio_http2_server.h
+--- a/lib/includes/nghttp2/asio_http2_server.h	2022-08-11 19:18:50.000000000 +0200
++++ b/lib/includes/nghttp2/asio_http2_server.h	2026-07-11 16:00:53.627378060 +0200
+@@ -204,6 +204,9 @@
+   // Sets read timeout, which defaults to 60 seconds.
+   void read_timeout(const boost::posix_time::time_duration &t);
+ 
++  // Sets maximum concurrent streams per connection; defaults to 256.
++  void max_concurrent_streams(uint32_t val);
++
+   // Gracefully stop http2 server
+   void stop();
+ 
