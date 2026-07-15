@@ -1,0 +1,192 @@
+diff -Naur a/lib/asio_server.cc b/lib/asio_server.cc
+--- a/lib/asio_server.cc
++++ b/lib/asio_server.cc
+@@ -135,11 +135,20 @@
+       mux, tls_handshake_timeout_, read_timeout_,
+       max_concurrent_streams_, io_service_pool_.get_io_service(), tls_context);
+
++  new_connection->on_stop([this](connection<ssl_socket> *conn) {
++    std::lock_guard<std::mutex> guard(mutex_);
++    ssl_connections_.erase(conn);
++  });
++
+   acceptor.async_accept(
+       new_connection->socket().lowest_layer(),
+       [this, &tls_context, &acceptor, &mux,
+        new_connection](const boost::system::error_code &e) {
+         if (!e) {
++          {
++            std::lock_guard<std::mutex> guard(mutex_);
++            ssl_connections_.insert(new_connection.get());
++          }
+           new_connection->socket().lowest_layer().set_option(
+               tcp::no_delay(true));
+           new_connection->start_tls_handshake_deadline();
+@@ -174,24 +183,44 @@
+       mux, tls_handshake_timeout_, read_timeout_,
+       max_concurrent_streams_, io_service_pool_.get_io_service());
+
++  new_connection->on_stop([this](connection<tcp::socket> *conn) {
++    std::lock_guard<std::mutex> guard(mutex_);
++    plain_connections_.erase(conn);
++  });
++
+   acceptor.async_accept(
+       new_connection->socket(), [this, &acceptor, &mux, new_connection](
+                                     const boost::system::error_code &e) {
+         if (!e) {
++          {
++            std::lock_guard<std::mutex> guard(mutex_);
++            plain_connections_.insert(new_connection.get());
++          }
+           new_connection->socket().set_option(tcp::no_delay(true));
+           new_connection->start_read_deadline();
+           new_connection->start();
+         }
+-        if (acceptor.is_open()) {
+-          start_accept(acceptor, mux);
+-        }
++        start_accept(acceptor, mux);
+       });
+ }
+
+ void server::stop() {
++  std::lock_guard<std::mutex> guard(mutex_);
++
+   for (auto &acceptor : acceptors_) {
+     acceptor.close();
+   }
++
++  for (auto *conn : ssl_connections_) {
++    conn->notify_shutdown();
++  }
++  for (auto *conn : plain_connections_) {
++    conn->notify_shutdown();
++  }
++
++  ssl_connections_.clear();
++  plain_connections_.clear();
++
+   io_service_pool_.stop();
+ }
+
+diff -Naur a/lib/asio_server.h b/lib/asio_server.h
+--- a/lib/asio_server.h
++++ b/lib/asio_server.h
+@@ -42,6 +42,8 @@
+ #include <string>
+ #include <vector>
+ #include <memory>
++#include <mutex>
++#include <set>
+
+ #include <boost/noncopyable.hpp>
+
+@@ -57,6 +59,9 @@
+
+ class serve_mux;
+
++template <typename socket_type>
++class connection;
++
+ using boost::asio::ip::tcp;
+
+ using ssl_socket = boost::asio::ssl::stream<tcp::socket>;
+@@ -103,6 +108,11 @@
+   /// Acceptor used to listen for incoming connections.
+   std::vector<tcp::acceptor> acceptors_;
+
++  // Active connections tracked for graceful shutdown
++  std::mutex mutex_;
++  std::set<connection<ssl_socket>*> ssl_connections_;
++  std::set<connection<tcp::socket>*> plain_connections_;
++
+   std::unique_ptr<boost::asio::ssl::context> ssl_ctx_;
+
+   boost::posix_time::time_duration tls_handshake_timeout_;
+diff -Naur a/lib/asio_server_connection.h b/lib/asio_server_connection.h
+--- a/lib/asio_server_connection.h
++++ b/lib/asio_server_connection.h
+@@ -84,7 +84,8 @@
+         read_timeout_(read_timeout),
+         max_concurrent_streams_(max_concurrent_streams),
+         writing_(false),
+-        stopped_(false) {}
++        stopped_(false),
++        notify_shutdown_(false) {}
+
+   /// Start the first asynchronous operation for the connection.
+   void start() {
+@@ -133,6 +134,11 @@
+   void do_read() {
+     auto self = this->shared_from_this();
+
++    if (notify_shutdown_) {
++      handler_->notify_shutdown();
++      notify_shutdown_ = false;
++    }
++
+     deadline_.expires_from_now(read_timeout_);
+
+     socket_.async_read_some(
+@@ -221,11 +227,24 @@
+     }
+
+     stopped_ = true;
++
++    if (on_stop_) {
++      on_stop_(this);
++    }
++
+     boost::system::error_code ignored_ec;
+     socket_.lowest_layer().close(ignored_ec);
+     deadline_.cancel();
+   }
+
++  void notify_shutdown() {
++    notify_shutdown_ = true;
++  }
++
++  void on_stop(std::function<void(connection<socket_type> *)> handler) {
++    on_stop_ = std::move(handler);
++  }
++
+ private:
+   socket_type socket_;
+
+@@ -245,6 +264,9 @@
+
+   bool writing_;
+   bool stopped_;
++  bool notify_shutdown_;
++
++  std::function<void(connection<socket_type> *)> on_stop_;
+ };
+
+ } // namespace server
+diff -Naur a/lib/asio_server_http2_handler.cc b/lib/asio_server_http2_handler.cc
+--- a/lib/asio_server_http2_handler.cc
++++ b/lib/asio_server_http2_handler.cc
+@@ -304,6 +304,10 @@
+   return 0;
+ }
+
++int http2_handler::notify_shutdown() {
++  return nghttp2_submit_shutdown_notice(session_);
++}
++
+ stream *http2_handler::create_stream(int32_t stream_id) {
+   auto p =
+       streams_.emplace(stream_id, std::make_unique<stream>(this, stream_id));
+diff -Naur a/lib/asio_server_http2_handler.h b/lib/asio_server_http2_handler.h
+--- a/lib/asio_server_http2_handler.h
++++ b/lib/asio_server_http2_handler.h
+@@ -61,6 +61,8 @@
+
+   int start(uint32_t max_concurrent_streams = 256);
+
++  int notify_shutdown();
++
+   stream *create_stream(int32_t stream_id);
+   void close_stream(int32_t stream_id);
+   stream *find_stream(int32_t stream_id);
